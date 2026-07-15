@@ -1,0 +1,22 @@
+services:
+  locate-anything:
+    build:
+      context: ..
+      dockerfile: locate_anything/Dockerfile
+    container_name: locate-anything
+    ports:
+      - "8000:8000"
+    environment:
+      MODEL_CARD_NAME: nvidia/LocateAnything-3B
+      MODEL_NAME: locate_-anything
+      MAX_CONCURRENCY: 5
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
+    runtime: nvidia
+    restart: unless-stopped
+    shm_size: 8g
+    volumes:
+      - hf-cache:/root/.cache/huggingface
+
+volumes:
+  hf-cache:
