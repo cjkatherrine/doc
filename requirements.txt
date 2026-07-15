@@ -1,5 +1,14 @@
 fastapi==0.115.0
 uvicorn[standard]==0.30.6
-pillow==10.4.0
-torch==2.2.2
-transformers==4.44.2
+pillow==11.1.0
+transformers==4.57.1
+tokenizers==0.22.0
+accelerate==1.5.2
+timm>=1.0.11
+peft==0.12.0
+torchvision
+python-multipart==0.0.9
+opencv-python-headless==4.11.0.86
+numpy==1.25.0
+decord==0.6.0
+lmdb==1.7.5

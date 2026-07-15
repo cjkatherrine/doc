@@ -1,22 +1,61 @@
 services:
   locate-anything:
     build:
-      context: ..
-      dockerfile: locate_anything/Dockerfile
+      context: .
+      dockerfile: Dockerfile
     container_name: locate-anything
     ports:
-      - "8000:8000"
+      - "${HOST_PORT:-8000}:8000"
     environment:
-      MODEL_CARD_NAME: nvidia/LocateAnything-3B
-      MODEL_NAME: locate_-anything
-      MAX_CONCURRENCY: 5
-      NVIDIA_VISIBLE_DEVICES: all
-      NVIDIA_DRIVER_CAPABILITIES: compute,utility
+      MODEL_CARD_NAME: "${MODEL_CARD_NAME:-nvidia/LocateAnything-3B}"
+      MODEL_NAME: "${MODEL_NAME:-locate-anything}"
+      DEVICE: "${DEVICE:-cuda}"
+      DTYPE: "${DTYPE:-bfloat16}"
+      GENERATION_MODE: "${GENERATION_MODE:-hybrid}"
+      MAX_NEW_TOKENS: "${MAX_NEW_TOKENS:-8192}"
+      TEMPERATURE: "${TEMPERATURE:-0.7}"
+      TOP_P: "${TOP_P:-0.9}"
+      TOP_K: "${TOP_K:-0}"
+      REPETITION_PENALTY: "${REPETITION_PENALTY:-1.1}"
+      MAX_IMAGE_SIZE: "${MAX_IMAGE_SIZE:-2500}"
+      MAX_CONCURRENCY: "${MAX_CONCURRENCY:-1}"
+      NVIDIA_VISIBLE_DEVICES: "${NVIDIA_VISIBLE_DEVICES:-all}"
+      NVIDIA_DRIVER_CAPABILITIES: "compute,utility"
+      HF_HOME: "/root/.cache/huggingface"
+      TRANSFORMERS_CACHE: "/root/.cache/huggingface"
+      PYTORCH_CUDA_ALLOC_CONF: "expandable_segments:True"
     runtime: nvidia
     restart: unless-stopped
-    shm_size: 8g
+    ipc: host
+    shm_size: "${SHM_SIZE:-16g}"
+    ulimits:
+      memlock: -1
+      stack: 67108864
     volumes:
       - hf-cache:/root/.cache/huggingface
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ["${GPU_DEVICE_ID:-0}"]
+              capabilities: [gpu]
+
+  locate-anything-ui:
+    build:
+      context: .
+      dockerfile: Dockerfile.ui
+    container_name: locate-anything-ui
+    ports:
+      - "${UI_HOST_PORT:-8501}:8501"
+    environment:
+      API_URL: "http://locate-anything:8000"
+      MODEL_NAME: "${MODEL_NAME:-locate-anything}"
+      UI_SERVER_NAME: "0.0.0.0"
+      UI_SERVER_PORT: "8501"
+    depends_on:
+      - locate-anything
+    restart: unless-stopped
 
 volumes:
   hf-cache:
